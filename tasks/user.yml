@@ -1,0 +1,13 @@
+---
+- name: user | Ensure group exists
+  ansible.builtin.group:
+    name: "{{ alertmanager_docker_group }}"
+    gid: "{{ alertmanager_docker_gid }}"
+    state: present
+
+- name: user | Ensure user exists with gid
+  ansible.builtin.user:
+    name: "{{ alertmanager_docker_user }}"
+    uid: "{{ alertmanager_docker_uid }}"
+    system: "{{ alertmanager_docker_user_system | default(omit) }}"
+    state: "present"

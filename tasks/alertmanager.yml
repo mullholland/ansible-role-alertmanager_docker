@@ -1,0 +1,64 @@
+---
+- name: alertmanager | set application facts
+  ansible.builtin.set_fact:
+    app_name: "alertmanager"
+    app_image: "{{ alertmanager_docker_version }}"
+    app_network: "{{ alertmanager_docker_network_name }}"
+    app_base_path: "{{ alertmanager_docker_base_path }}"
+    app_user: "{{ alertmanager_docker_user }}"
+    app_uid: "{{ alertmanager_docker_uid }}"
+    app_group: "{{ alertmanager_docker_group }}"
+    app_gid: "{{ alertmanager_docker_gid }}"
+    app_timezone: "{{ alertmanager_docker_timezone }}"
+    app_environment_variables: "{{ alertmanager_docker_environment_variables }}"
+    app_commands: "{{ alertmanager_docker_commands }}"
+    app_volumes: "{{ alertmanager_docker_volumes }}"
+    app_labels: "{{ alertmanager_docker_labels }}"
+    app_ports: "{{ alertmanager_docker_ports }}"
+
+- name: "alertmanager | Ensure app folders exists"
+  ansible.builtin.file:
+    name: '{{ app_base_path }}/{{ app_name }}/{{ item }}'
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0770"
+    state: directory
+  with_items:
+    - "config"
+    - "data"
+    - "templates"
+
+- name: alertmanager | get docker executable path
+  ansible.builtin.command:
+    cmd: "which docker"
+  changed_when: false
+  register: alertmanager_docker_executable_path
+
+- name: "alertmanager | create docker-compose.yml"
+  ansible.builtin.template:
+    src: "docker-compose.yml.j2"
+    dest: "{{ app_base_path }}/{{ app_name }}/docker-compose.yml"
+    mode: "0640"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+  notify: alertmanager_restart
+
+- name: "alertmanager | create alertmanager.yml"
+  ansible.builtin.template:
+    src: "alertmanager.yml.j2"
+    dest: "{{ app_base_path }}/{{ app_name }}/config/alertmanager.yml"
+    mode: "0640"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+  notify: alertmanager_restart
+
+- name: "alertmanager | Create systemd service"
+  ansible.builtin.template:
+    src: "systemd.service.j2"
+    dest: "/etc/systemd/system/{{ app_name }}.service"
+    mode: "0770"
+    owner: "root"
+    group: "root"
+  notify:
+    - alertmanager_systemd_reload
+    - alertmanager_restart

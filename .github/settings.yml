@@ -1,0 +1,8 @@
+---
+#
+# Ansible managed
+#
+repository:
+  description: Installs and configures alertmanager container based on official alertmanager docker container
+  homepage: https://mullholland.net
+  topics: cloud, development, webserver, alertmanager, proxy, ansible, molecule, tox, playbook

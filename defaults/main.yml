@@ -1,0 +1,52 @@
+---
+# General config
+alertmanager_docker_network_name: "web"
+alertmanager_docker_base_path: "/opt"
+alertmanager_docker_timezone: "Europe/Berlin"
+
+# User/Group of the stack. Everything is mapped to this, instead of root.
+alertmanager_docker_user: "homelab"
+alertmanager_docker_uid: "900"
+alertmanager_docker_group: "homelab"
+alertmanager_docker_gid: "900"
+alertmanager_docker_user_system: true
+
+# which container version to install
+# can also be latest
+alertmanager_docker_version: "prom/alertmanager:latest"
+
+# https://docs.victoriametrics.com/alertmanager/#advanced-usage
+alertmanager_docker_commands:
+  - "--config.file=/etc/alertmanager/alertmanager.yml"
+  - "--storage.path=/etc/alertmanager/data"
+
+alertmanager_docker_environment_variables: []
+alertmanager_docker_volumes:
+  - "{{ alertmanager_docker_base_path }}/alertmanager/config/alertmanager.yml:/etc/alertmanager/alertmanager.yml"
+  - "{{ alertmanager_docker_base_path }}/alertmanager/data:/etc/alertmanager/data"
+  - "{{ alertmanager_docker_base_path }}/alertmanager/templates:/etc/alertmanager/templates"
+
+# which port to expose. can be empty
+alertmanager_docker_ports:
+  - "9093:9093"
+
+alertmanager_docker_labels:
+  - "traefik.enable=false"
+# - "traefik.enable=true"
+# - "traefik.http.routers.alertmanager.entryPoints=https"
+# - "traefik.http.routers.alertmanager.rule=Host(`alertmanager.example.com`)"
+# - "traefik.http.routers.alertmanager.tls.certResolver=letsEncrypt"
+# - "traefik.http.routers.alertmanager.tls=true"
+#  - "traefik.http.routers.alertmanager.service=alertmanager"
+#  - "traefik.http.routers.alertmanager.loadbalancer.server.port=80"
+
+
+# Variable will be put throuhj `to_nice_yaml` as the config in `alertmanager.yml`
+# https://prometheus.io/docs/alerting/latest/configuration/
+alertmanager_docker_config:
+  templates:
+    - '/etc/alertmanager/templates/*.tmpl'
+  route:
+    receiver: blackhole
+  receivers:
+    - name: blackhole
